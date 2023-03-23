@@ -25,17 +25,39 @@ class Grid{
   }  
 }
 class Player{
-    constructor(){
-      this.x = canvas.width/40;
-      this.y = canvas.height/40;
-      this.width = canvas.width/20;
-      this.height = canvas.height/20;
-    }
+  constructor(){
+    this.xunits = canvas.width/40;
+    this.yunits = canvas.height/40;
+    this.x = canvas.width/40;
+    this.y = canvas.height/40;
+    this.width = canvas.width/20;
+    this.height = canvas.height/20;
+  }
 	
 	render(){
 		//color player object
-		ctx.fillStyle = "#ff00ff";
-		ctx.fillRect(this.x, this.y, this.width, this.height);
+		// ctx.fillStyle = "#ff00ff";
+		// ctx.fillRect(this.x, this.y, this.width, this.height);
+    
+    console.log('x: '+this.x);
+    console.log('y: '+this.y);
+    console.log('width offset: '+this.width);
+    console.log('Height offset: '+this.height);
+    
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
+    ctx.lineTo(this.x + this.xunits + this.xunits, this.y);
+    ctx.lineTo(this.x + this.xunits, this.y + this.yunits + this.yunits);
+    ctx.closePath();
+    ctx.fill();
+    console.log(`drawn`);
+    
+    
+    
+    // this.move('down');
+    // this.clear();
+    
 	}
   
   clear(){
@@ -58,7 +80,9 @@ class Player{
       if(this.y+(canvas.height/10)>canvas.height){
         console.log('cant move further down');
       } else {
-        this.y += canvas.height/10;        
+        this.y += canvas.height/10;
+        console.log('y added: '+canvas.height/10);
+        
       }
     } else if (dir==='left'){
       //move left if x value will be above 0
@@ -76,6 +100,7 @@ class Player{
       }    
     }
     
+    console.log('**********');
     this.render();
   }
   
@@ -87,6 +112,7 @@ class Projectile{
       this.width = width;
       this.height = height;
       this.velocity = velocity;
+      //direction
 			this.dir = dir;
       this.player = player;
       this.active = active;
@@ -152,6 +178,7 @@ class Projectile{
 	}
 }
 
+
 //instantiate grid 
 const grid = new Grid();
 grid.render();
@@ -159,10 +186,11 @@ grid.render();
 //render player at origin
 const player = new Player();
 player.render();
+player.move('down');
 
-const projectile = new Projectile(player.x,player.y,10,3,1,'down',player);
-projectile.render();
-projectile.update();
+// const projectile = new Projectile(player.x,player.y,10,3,1,'down',player);
+// projectile.render();
+// projectile.update();
 
 //keeps on running
 const animateProjectile = () => {	
@@ -181,4 +209,4 @@ const animateProjectile = () => {
   }
 }
 
-animateProjectile();
+// animateProjectile();
