@@ -2,16 +2,16 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext('2d');
 
 class Grid{  
-  constructor(){}
+  constructor(){
+    this.blockWidth = canvas.width/10;
+    this.blockHeight = canvas.height/10;
+  }
 	
-	render(){
-    let blockWidth = canvas.width/10;
-    let blockHeight = canvas.height/10;
-    
+	render(){    
     //Draw 10x10 grid
     for(let i=1; i<=10; i++){
-      let posx = i*blockWidth;      
-      let posy = i*blockHeight;
+      let posx = i*this.blockWidth;      
+      let posy = i*this.blockHeight;
       
       ctx.moveTo(posx,0);
       ctx.lineTo(posx, canvas.height);
@@ -80,6 +80,77 @@ class Player{
   }
   
 }
+class Projectile{
+  constructor(x,y,height,width,velocity,dir,player,active=false){
+      this.x = x-(width/2)+(player.width/2);
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      this.velocity = velocity;
+			this.dir = dir;
+      this.player = player;
+      this.active = active;
+    }
+	
+	render(){    
+		//render projectile object
+		ctx.fillStyle = "#000000";
+    this.active = true;
+    
+    if(this.dir=="up"||this.dir=="down"){
+      ctx.fillRect(this.x, this.y, this.width, this.height);   
+    } else {
+      ctx.fillRect(this.x+0, this.y+(this.player.height/4), this.height, this.width);  
+    }
+	}
+  
+  clear(){
+    //clear rect that player occupies
+    ctx.clearRect(this.x-1, this.y-1, this.width+2, this.height+2);
+  }
+	
+	update(){
+    
+    console.log('x: '+ this.x);
+    console.log('y: '+ this.y);
+    console.log('height: '+this.height);
+    console.log('width: '+ this.width);
+    console.log('canvas w: '+ canvas.width);
+    console.log('canvas h: '+ canvas.height);
+    console.log('less than canvas height: '+(this.y + this.height <= canvas.height));
+    console.log('more than canvas y origin: '+(this.y >= 0));
+    console.log('less than canvas width: '+ (this.x + this.width <= canvas.width));
+    console.log('more than x origin: '+ (this.x >= 0));
+		
+		//check for border collision
+		if(
+      this.y + this.height <= canvas.height &&
+      this.y >= 0 &&
+      this.x + this.width <= canvas.width &&
+      this.x >= 0
+    ){
+			if(this.dir==='left'){
+				this.x-=this.velocity;
+			}
+      
+      if(this.dir==='right'){
+				this.x+=this.velocity;
+			} 
+      
+      if(this.dir==='up'){
+				this.y-=this.velocity;
+			}
+      
+      if(this.dir==='down'){
+				this.y+=this.velocity;
+			}
+      
+		}else{
+			this.dir = null;
+      this.active = false;
+		}
+	}
+}
 
 //instantiate grid 
 const grid = new Grid();
@@ -88,28 +159,26 @@ grid.render();
 //render player at origin
 const player = new Player();
 player.render();
-player.move('right');
+
+const projectile = new Projectile(player.x,player.y,10,3,1,'down',player);
+projectile.render();
+projectile.update();
 
 //keeps on running
-// const animate = () => {	
-// ctx.clearRect(player.x-1, player.y-1, player.width+2, player.height+2);
-// 	window.requestAnimationFrame(animate);
-// 	player.render();
-// 	player.update();
-// 	platform.render();
-	
-// 	// collision detection
-// 	if(
-// 		//check y collision
-// 		player.y + player.height <= platform.y &&
-// 		player.y + player.gravity + player.height >= platform.y &&
-// 		player.x + player.width >= platform.x &&
-// 		player.x <= platform.x+platform.width
-// 	){
-// 		player.gravity = 0;
-// 	}else{
-// 		player.gravity = 1;
-// 	}
-// }
+const animateProjectile = () => {	
+  if(projectile.active){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    window.requestAnimationFrame(animateProjectile);
+    projectile.render();
+    projectile.update();
+    grid.render();
+    player.render();
+  }else{
+    ctx.clearRect(0, 0, canvas.width, canvas.height);    
+    grid.render();
+    player.render();
+    console.log('End of animation');
+  }
+}
 
-// animate();
+animateProjectile();
