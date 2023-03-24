@@ -11,7 +11,7 @@ class Grid{
     ctx.beginPath();
     
     //Draw 10x10 grid
-    for(let i=1; i<=10; i++){
+    for(let i=0; i<=10; i++){
       let posx = i*this.blockWidth;      
       let posy = i*this.blockHeight;
       
@@ -37,18 +37,11 @@ class Player{
     this.height = canvas.height/20;
     this.dir = dir;
     this.grid = grid;
+    this.firedProj = false;
   }
 	
 	render(){
-		//color player object
-		// ctx.fillStyle = "#ff00ff";
-		// ctx.fillRect(this.x, this.y, this.width, this.height);
-    
-    console.log('x: '+this.x);
-    console.log('y: '+this.y);
-    console.log('width offset: '+this.width);
-    console.log('Height offset: '+this.height);
-    
+    // Draw player according to direction
     ctx.beginPath();
     
     if(this.dir=='down'){
@@ -74,10 +67,7 @@ class Player{
     }
     
     ctx.closePath();
-    ctx.fill();
-    console.log(`drawn`);
-    
-    
+    ctx.fill();   
 	}
   
   clear(){
@@ -141,6 +131,7 @@ class Projectile{
 		ctx.fillStyle = "#000000";
     this.active = true;
     
+    //draw projectile according to player orientation
     if(this.dir=="up"||this.dir=="down"){
       ctx.fillRect(this.x, this.y, this.width, this.height);   
     } else {
@@ -154,17 +145,6 @@ class Projectile{
   }
 	
 	update(){
-    
-    console.log('x: '+ this.x);
-    console.log('y: '+ this.y);
-    console.log('height: '+this.height);
-    console.log('width: '+ this.width);
-    console.log('canvas w: '+ canvas.width);
-    console.log('canvas h: '+ canvas.height);
-    console.log('less than canvas height: '+(this.y + this.height <= canvas.height));
-    console.log('more than canvas y origin: '+(this.y >= 0));
-    console.log('less than canvas width: '+ (this.x + this.width <= canvas.width));
-    console.log('more than x origin: '+ (this.x >= 0));
 		
 		//check for border collision
 		if(
@@ -206,8 +186,6 @@ player.render();
 
 //listen for button press and start action
 window.addEventListener("keydown",({code})=>{
-	// pressed = true;
-	console.log("Pressed: "+code);
 	
 	if(code==='KeyD'||code==='ArrowRight'){
 		player.move('right');
@@ -226,16 +204,15 @@ window.addEventListener("keydown",({code})=>{
 	}
   
   if(code==='KeyF'){
-		// let projectile = new Projectile(player.x,player.y,10,3,1,player.dir,player);
-    // projectile.render();
-    //     animateProjectile();
-
-    let projectile = new Projectile(player.x,player.y,10,3,1,player.dir,player);
+    
+    if(!player.firedProj){
+      let projectile = new Projectile(player.x,player.y,10,3,4,player.dir,player);
     projectile.render();
 
     //keeps on running
     let animateProjectile = () => {	
       if(projectile.active){
+        player.firedProj = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         window.requestAnimationFrame(animateProjectile);
         projectile.render();
@@ -247,11 +224,11 @@ window.addEventListener("keydown",({code})=>{
         grid.render();
         player.render();
         console.log('End of projectile animation');
+        player.firedProj = false;
       }
     }
 
      animateProjectile();
+    }
 	}
 });
-
-
