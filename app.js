@@ -8,6 +8,8 @@ class Grid{
   }
 	
 	render(){    
+    ctx.beginPath();
+    
     //Draw 10x10 grid
     for(let i=1; i<=10; i++){
       let posx = i*this.blockWidth;      
@@ -20,18 +22,21 @@ class Grid{
       ctx.lineTo(canvas.width, posy);
     }
     
+    ctx.closePath();
     //draw lines
     ctx.stroke();
   }  
 }
 class Player{
-  constructor(){
+  constructor(grid,dir='up'){
     this.xunits = canvas.width/40;
     this.yunits = canvas.height/40;
     this.x = canvas.width/40;
     this.y = canvas.height/40;
     this.width = canvas.width/20;
     this.height = canvas.height/20;
+    this.dir = dir;
+    this.grid = grid;
   }
 	
 	render(){
@@ -45,24 +50,40 @@ class Player{
     console.log('Height offset: '+this.height);
     
     ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
-    ctx.lineTo(this.x + this.xunits + this.xunits, this.y);
-    ctx.lineTo(this.x + this.xunits, this.y + this.yunits + this.yunits);
+    
+    if(this.dir=='down'){
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
+      ctx.lineTo(this.x + this.xunits*2, this.y);
+      ctx.lineTo(this.x + this.xunits, this.y + this.yunits*2);
+    } else if(this.dir=='up'){
+      ctx.moveTo(this.x, this.y + this.yunits*1.5);
+      ctx.lineTo(this.x + this.xunits, this.y - this.yunits/2);
+      ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits*1.5);
+      ctx.lineTo(this.x + this.xunits, this.y + this.yunits/2);
+    } else if(this.dir=='right'){
+      ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
+      ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits);
+      ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
+      ctx.lineTo(this.x + this.xunits*1.5, this.y + this.yunits);
+    } else if(this.dir=='left'){
+      ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
+      ctx.lineTo(this.x - this.xunits/4, this.y + this.yunits);
+      ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
+      ctx.lineTo(this.x + this.xunits/6, this.y + this.yunits);
+    }
+    
     ctx.closePath();
     ctx.fill();
     console.log(`drawn`);
     
     
-    
-    // this.move('down');
-    // this.clear();
-    
 	}
   
   clear(){
     //clear rect that player occupies
-    ctx.clearRect(player.x-1, player.y-1, player.width+2, player.height+2);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.grid.render();
   }
   
   move(dir){    
@@ -71,39 +92,36 @@ class Player{
     if(dir==='up'){      
       //move up if y value will be above 0
       if(this.y-(canvas.height/10)<0){
-        console.log('cant move further up');
+        alert('cant move further up');
       } else {
-        this.y -= canvas.height/10;        
+        this.y -= canvas.height/10;
       }
     } else if (dir==='down'){
       //move down if y value will be less than view height
       if(this.y+(canvas.height/10)>canvas.height){
-        console.log('cant move further down');
+        alert('cant move further down');
       } else {
-        this.y += canvas.height/10;
-        console.log('y added: '+canvas.height/10);
-        
+        this.y += canvas.height/10;        
       }
     } else if (dir==='left'){
       //move left if x value will be above 0
       if(this.x-(canvas.width/10)<0){
-        console.log('cant move further left');
+        alert('cant move further left');
       } else {
         this.x -= canvas.width/10;       
       }      
     } else if (dir==='right'){
       //move down if x value will be less than view width
       if(this.x+(canvas.width/10)>canvas.width){
-        console.log('cant move further right');
+        alert('cant move further right');
       } else {
         this.x += canvas.width/10;    
       }    
     }
-    
-    console.log('**********');
+
+    this.dir = dir;        
     this.render();
   }
-  
 }
 class Projectile{
   constructor(x,y,height,width,velocity,dir,player,active=false){
@@ -178,35 +196,62 @@ class Projectile{
 	}
 }
 
-
 //instantiate grid 
 const grid = new Grid();
 grid.render();
 
 //render player at origin
-const player = new Player();
+const player = new Player(grid,'up');
 player.render();
-player.move('down');
 
-// const projectile = new Projectile(player.x,player.y,10,3,1,'down',player);
-// projectile.render();
-// projectile.update();
+//listen for button press and start action
+window.addEventListener("keydown",({code})=>{
+	// pressed = true;
+	console.log("Pressed: "+code);
+	
+	if(code==='KeyD'||code==='ArrowRight'){
+		player.move('right');
+	}
+  
+  if(code==='KeyA'||code==='ArrowLeft'){
+		player.move('left');
+	}
+  
+  if(code==='KeyW'||code==='ArrowUp'){
+		player.move('up');
+	}
+  
+  if(code==='KeyS'||code==='ArrowDown'){
+		player.move('down');
+	}
+  
+  if(code==='KeyF'){
+		// let projectile = new Projectile(player.x,player.y,10,3,1,player.dir,player);
+    // projectile.render();
+    //     animateProjectile();
 
-//keeps on running
-const animateProjectile = () => {	
-  if(projectile.active){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    window.requestAnimationFrame(animateProjectile);
+    let projectile = new Projectile(player.x,player.y,10,3,1,player.dir,player);
     projectile.render();
-    projectile.update();
-    grid.render();
-    player.render();
-  }else{
-    ctx.clearRect(0, 0, canvas.width, canvas.height);    
-    grid.render();
-    player.render();
-    console.log('End of animation');
-  }
-}
 
-// animateProjectile();
+    //keeps on running
+    let animateProjectile = () => {	
+      if(projectile.active){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        window.requestAnimationFrame(animateProjectile);
+        projectile.render();
+        projectile.update();
+        grid.render();
+        player.render();
+      }else{
+        ctx.clearRect(0, 0, canvas.width, canvas.height);    
+        grid.render();
+        player.render();
+        console.log('End of projectile animation');
+      }
+    }
+
+     animateProjectile();
+	}
+});
+
+
