@@ -1,6 +1,9 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext('2d');
 
+ctx.translate(0, canvas.height);
+ctx.scale(1,-1);
+
 //add audio effects
 var pew = new Audio('https://drive.google.com/uc?id=1s0ATFaXqqMNtK65DsmlxCvAw9TCXGwj0&export=download');
 var bang = new Audio('https://drive.google.com/uc?id=1V7Q6v6ZijbTZX3Lj3Uz26dERtGktyUo7&export=download');
@@ -8,6 +11,7 @@ pew.load();
 pew.volume = 0.4;
 bang.load();
 bang.volume = 0.5;
+
 
 class Grid{  
   constructor(){
@@ -36,7 +40,7 @@ class Grid{
   }  
 }
 class Player{
-  constructor(grid,dir='up'){
+  constructor(grid,dir='down'){
     this.xunits = canvas.width/40;
     this.yunits = canvas.height/40;
     this.x = canvas.width/40;
@@ -46,18 +50,19 @@ class Player{
     this.dir = dir;
     this.grid = grid;
     this.firedProj = false;
+    
   }
 	
 	render(){
     // Draw player according to direction
     ctx.beginPath();
     
-    if(this.dir=='down'){
+    if(this.dir=='up'){
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
       ctx.lineTo(this.x + this.xunits*2, this.y);
       ctx.lineTo(this.x + this.xunits, this.y + this.yunits*2);
-    } else if(this.dir=='up'){
+    } else if(this.dir=='down'){
       ctx.moveTo(this.x, this.y + this.yunits*1.5);
       ctx.lineTo(this.x + this.xunits, this.y - this.yunits/2);
       ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits*1.5);
@@ -87,17 +92,17 @@ class Player{
   move(dir){    
     this.clear();
     
-    if(dir==='up'){      
+    if(dir==='down'){      
       //move up if y value will be above 0
       if(this.y-(canvas.height/10)<0){
-        alert('cant move further up');
+        alert('cant move further down');
       } else {
         this.y -= canvas.height/10;
       }
-    } else if (dir==='down'){
+    } else if (dir==='up'){
       //move down if y value will be less than view height
       if(this.y+(canvas.height/10)>canvas.height){
-        alert('cant move further down');
+        alert('cant move further up');
       } else {
         this.y += canvas.height/10;        
       }
@@ -169,11 +174,11 @@ class Projectile{
 				this.x+=this.velocity;
 			} 
       
-      if(this.dir==='up'){
+      if(this.dir==='down'){
 				this.y-=this.velocity;
 			}
       
-      if(this.dir==='down'){
+      if(this.dir==='up'){
 				this.y+=this.velocity;
 			}
       
@@ -182,11 +187,31 @@ class Projectile{
       this.active = false;
 		}
 	}
+  
+  explode(){
+    //depending on the direction, the projectile should draw 3-4 lines away from the barrier it hits
+  }
+}
+class Effect{
+  constructor(x,y){
+      this.x = x;
+      this.y = y;
+      this.active = false;
+    }
+	
+	render(){    
+		//TODO
+	}
 }
 
 //instantiate grid 
 const grid = new Grid();
 grid.render();
+
+// test explosion render
+// ctx.moveTo(canvas.width/20,canvas.height);
+// ctx.lineTo(0,canvas.height/10);
+// ctx.stroke();
 
 //render player at origin
 const player = new Player(grid,'up');
