@@ -1,6 +1,14 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext('2d');
 
+//add audio effects
+var pew = new Audio('https://drive.google.com/uc?id=1s0ATFaXqqMNtK65DsmlxCvAw9TCXGwj0&export=download');
+var bang = new Audio('https://drive.google.com/uc?id=1V7Q6v6ZijbTZX3Lj3Uz26dERtGktyUo7&export=download');
+pew.load();
+pew.volume = 0.4;
+bang.load();
+bang.volume = 0.5;
+
 class Grid{  
   constructor(){
     this.blockWidth = canvas.width/10;
@@ -208,6 +216,8 @@ window.addEventListener("keydown",({code})=>{
     if(!player.firedProj){
       let projectile = new Projectile(player.x,player.y,10,3,4,player.dir,player);
     projectile.render();
+      pew.currentTime = 0;
+      pew.play();
 
     //keeps on running
     let animateProjectile = () => {	
@@ -220,6 +230,8 @@ window.addEventListener("keydown",({code})=>{
         grid.render();
         player.render();
       }else{
+        bang.currentTime = 0;
+        bang.play();
         ctx.clearRect(0, 0, canvas.width, canvas.height);    
         grid.render();
         player.render();
@@ -232,3 +244,5 @@ window.addEventListener("keydown",({code})=>{
     }
 	}
 });
+
+
