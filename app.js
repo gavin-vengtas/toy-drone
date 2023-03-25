@@ -19,6 +19,7 @@ window.addEventListener('load', function () {
   //load canvas
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext('2d');
+  let canvasPosition = canvas.getBoundingClientRect();
   
   //set origin to lower left corner
   ctx.translate(0, canvas.height);
@@ -209,42 +210,42 @@ window.addEventListener('load', function () {
         this.active = false;
       }
     }
-
-    explode(){
-      //depending on the direction, the projectile should draw 3-4 lines away from the barrier it hits
-    }
   }
   class Explosion{
-    constructor(x,y,boom){
-      this.x = x;
-      this.y = y;
+    constructor(x,y,boom, active){
+      this.x = x - 25;
+      this.y = y - (179/8);
       this.spriteWidth = 200;
       this.spriteHeight = 179;
-      this.width = this.spriteWidth/2;
-      this.height = this.spriteHeight/2;
+      this.width = this.spriteWidth/4;
+      this.height = this.spriteHeight/4;
       this.image = boom;
       this.frame = 0;
-        
+      this.timer = 0;
+      this.active = active;
     }
     
     update(){
-      this.frame++;
+      this.timer++;
+      if(this.timer % 10 === 0){
+        this.frame++;
+      }
     }
     
-    render(){    
-      //TODO
+    render(){
       ctx.drawImage(this.image, this.spriteWidth * this.frame, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height);
+      
+      if(this.frame>4){
+        this.active = false;        
+        this.frame = 0;
+        this.timer = 0;
+      }
     }
   }
 
   //instantiate grid 
   const grid = new Grid();
   grid.render();
-
-  // test explosion render
-  // ctx.moveTo(canvas.width/20,canvas.height);
-  // ctx.lineTo(0,canvas.height/10);
-  // ctx.stroke();
 
   //render player at origin
   const player = new Player(grid,'up');
@@ -288,20 +289,67 @@ window.addEventListener('load', function () {
           grid.render();
           player.render();
         }else{
+          let test = new Explosion(projectile.x,projectile.y, boom, true);
+          
           bang.currentTime = 0;
-          bang.play();
-          ctx.clearRect(0, 0, canvas.width, canvas.height);    
+          bang.play();          
+          ctx.clearRect(0, 0, canvas.width, canvas.height); 
+          
+          function animateExplosion(){
+
+            if(test.active){
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              test.update();
+              test.render();
+              player.render();
+              grid.render();
+              requestAnimationFrame(animateExplosion);
+            } else {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              console.log('end of explosion animation');
+
+              player.render();
+              grid.render();
+            }
+          }          
+          animateExplosion();
+          
           grid.render();
           player.render();
           console.log('End of projectile animation');
           player.firedProj = false;
         }
       }
-
-        animateProjectile();
+       animateProjectile();
       }
     }
   });
+  
+//   window.addEventListener("click",(e)=>{
+//     // test.render();
+//     let test = new Explosion(canvas.width/2,canvas.height/2, boom, true);
+//   function animateExplosion(){
+    
+//       if(test.active){
+//         ctx.clearRect(0, 0, canvas.width, canvas.height); 
+//         console.log('2. update timer and frame ~');
+//         test.update();
+//         console.log('3. Render Image');
+//         test.render();
+//         player.render();
+//         grid.render();
+//         requestAnimationFrame(animateExplosion);
+//       } else {
+//         ctx.clearRect(0, 0, canvas.width, canvas.height);
+//         console.log('end of explosion animation');
+
+//         player.render();
+//         grid.render();
+//       }
+//     }
+//     console.log('1. start explosion animation');
+//     animateExplosion();
+//   });
 
 });
 
