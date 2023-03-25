@@ -31,7 +31,7 @@ window.addEventListener('load', function () {
   pew.load();
   pew.volume = 0.4;
   bang.load();
-  bang.volume = 0.5;
+  bang.volume = 1;
   
   //load Images
   const boom = document.getElementById("boom");
@@ -171,7 +171,7 @@ window.addEventListener('load', function () {
       if(this.dir=="up"||this.dir=="down"){
         ctx.fillRect(this.x, this.y, this.width, this.height);   
       } else {
-        ctx.fillRect(this.x+0, this.y+(this.player.height/4), this.height, this.width);  
+        ctx.fillRect(this.x+0, this.y+(this.player.height*0.4), this.height*2, this.width*0.5);  
       }
     }
 
@@ -190,11 +190,11 @@ window.addEventListener('load', function () {
         this.x >= 0
       ){
         if(this.dir==='left'){
-          this.x-=this.velocity;
+          this.x-=this.velocity*1.5;
         }
 
         if(this.dir==='right'){
-          this.x+=this.velocity;
+          this.x+=this.velocity*1.5;
         } 
 
         if(this.dir==='down'){
