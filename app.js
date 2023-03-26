@@ -24,17 +24,24 @@ window.addEventListener('load', function () {
   //set origin to lower left corner
   ctx.translate(0, canvas.height);
   ctx.scale(1,-1);
+  
+  ctx.imageSmoothingEnabled = false;
+
 
   //add audio effects
-  var pew = new Audio('https://drive.google.com/uc?id=1s0ATFaXqqMNtK65DsmlxCvAw9TCXGwj0&export=download');
-  var bang = new Audio('https://drive.google.com/uc?id=1V7Q6v6ZijbTZX3Lj3Uz26dERtGktyUo7&export=download');
+  var pew = new Audio('assets/audio/pew.mp3');
+  var bang = new Audio('assets/audio/bang.mp3');
   pew.load();
-  pew.volume = 0.4;
   bang.load();
+  pew.volume = 0.4;
   bang.volume = 1;
   
   //load Images
   const boom = document.getElementById("boom");
+  const idleUp = document.getElementById("idleUp");  
+  const idleRight = document.getElementById("idleRight");
+  const idleDown = document.getElementById("idleDown");
+  const idleLeft = document.getElementById("idleLeft");
 
   class Grid{  
     constructor(){
@@ -63,47 +70,150 @@ window.addEventListener('load', function () {
     }  
   }
   class Player{
-    constructor(grid,dir='down'){
+    constructor(x,y,grid,dir='right',active=false){
       this.xunits = canvas.width/40;
       this.yunits = canvas.height/40;
-      this.x = canvas.width/40;
-      this.y = canvas.height/40;
-      this.width = canvas.width/20;
-      this.height = canvas.height/20;
+      this.x = x*(canvas.width/20);
+      this.y = y*(canvas.height/20);
+      this.width = canvas.width/8;
+      this.height = canvas.height/8;
       this.dir = dir;
       this.grid = grid;
       this.firedProj = false;
+      this.frame = 0;
+      this.timer = 0;
+      this.active = active;
+      this.state = 'idle';
+      this.imageIdle = idleUp;
+      this.spriteWidthIdle = 192/4;
+      this.spriteHeightIdle = 48;
+      this.sprite = {
+        'up': {
+            'image': idleUp,
+            'width' : 192/4,
+            'height': 48,
+            'animated': false
+        },        
+        'right': {
+            'image': idleRight,
+            'width' : 192/4,
+            'height': 48,
+            'animated': false
+        },
+        'down': {
+            'image': idleDown,
+            'width' : 192/4,
+            'height': 48,
+            'animated': false
+        },        
+        'left': {
+            'image': idleLeft,
+            'width' : 192/4,
+            'height': 48,
+            'animated': false
+        },
+      }
+      this.rotNum = 0;
 
     }
 
     render(){
       // Draw player according to direction
-      ctx.beginPath();
-
+    //   ctx.beginPath();
+        /*
       if(this.dir=='up'){
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
-        ctx.lineTo(this.x + this.xunits*2, this.y);
-        ctx.lineTo(this.x + this.xunits, this.y + this.yunits*2);
-      } else if(this.dir=='down'){
-        ctx.moveTo(this.x, this.y + this.yunits*1.5);
-        ctx.lineTo(this.x + this.xunits, this.y - this.yunits/2);
-        ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits*1.5);
-        ctx.lineTo(this.x + this.xunits, this.y + this.yunits/2);
-      } else if(this.dir=='right'){
-        ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
-        ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits);
-        ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
-        ctx.lineTo(this.x + this.xunits*1.5, this.y + this.yunits);
-      } else if(this.dir=='left'){
-        ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
-        ctx.lineTo(this.x - this.xunits/4, this.y + this.yunits);
-        ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
-        ctx.lineTo(this.x + this.xunits/6, this.y + this.yunits);
-      }
+        // ctx.moveTo(this.x, this.y);
+        // ctx.lineTo(this.x + this.xunits, this.y + this.yunits);
+        // ctx.lineTo(this.x + this.xunits*2, this.y);
+        // ctx.lineTo(this.x + this.xunits, this.y + this.yunits*2);
 
-      ctx.closePath();
-      ctx.fill();   
+        ctx.drawImage(
+            this.sprite[this.dir].image, 
+            0, 
+            0,
+            this.spriteWidthIdle, 
+            this.spriteHeightIdle, 
+            this.x-this.width/2, //offset image dimensions
+            this.y-this.height/2, 
+            this.width, 
+            this.height
+        );
+
+      } else if(this.dir=='down'){
+        // ctx.moveTo(this.x, this.y + this.yunits*1.5);
+        // ctx.lineTo(this.x + this.xunits, this.y - this.yunits/2);
+        // ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits*1.5);
+        // ctx.lineTo(this.x + this.xunits, this.y + this.yunits/2);
+
+        ctx.drawImage(
+            this.sprite[this.dir].image, 
+            0, 
+            0,
+            this.spriteWidthIdle, 
+            this.spriteHeightIdle, 
+            this.x-this.width/2, //offset image dimensions
+            this.y-this.height/2, 
+            this.width, 
+            this.height
+        );
+
+      } else if(this.dir=='right'){
+        // ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
+        // ctx.lineTo(this.x + this.xunits*2, this.y + this.yunits);
+        // ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
+        // ctx.lineTo(this.x + this.xunits*1.5, this.y + this.yunits);
+        
+        if(this.state=="idle"){
+          ctx.drawImage(
+                this.sprite[this.dir].image, 
+                0, 
+                0,
+                this.spriteWidthIdle, 
+                this.spriteHeightIdle, 
+                this.x-this.width/2, //offset image dimensions
+                this.y-this.height/2, 
+                this.width, 
+                this.height
+            );
+
+            // ctx.drawImage(this.imageIdle,this.x,this.y);
+        }
+        
+      } else if(this.dir=='left'){
+        // ctx.moveTo(this.x + this.xunits, this.y - this.yunits);
+        // ctx.lineTo(this.x - this.xunits/4, this.y + this.yunits);
+        // ctx.lineTo(this.x + this.xunits, this.y + this.yunits*3);
+        // ctx.lineTo(this.x + this.xunits/6, this.y + this.yunits);
+
+        ctx.drawImage(
+            this.sprite[this.dir].image, 
+            0, 
+            0,
+            this.spriteWidthIdle, 
+            this.spriteHeightIdle, 
+            this.x-this.width/2, //offset image dimensions
+            this.y-this.height/2, 
+            this.width, 
+            this.height
+        );
+
+      }*/
+
+      // ctx.closePath();
+      // ctx.fill();   
+
+        ctx.drawImage(
+            this.sprite[this.dir].image, 
+            0, 
+            0,
+            this.spriteWidthIdle, 
+            this.spriteHeightIdle, 
+            this.x-this.width/2, //offset image dimensions
+            this.y-this.height/2, 
+            this.width, 
+            this.height
+        );
+
     }
 
     clear(){
@@ -147,12 +257,22 @@ window.addEventListener('load', function () {
 
       this.dir = dir;        
       this.render();
+    }    
+    
+    rotation(direction){
+      if('left'){
+        this.rotNum ++;
+      } else {
+        this.rotNum --;
+      }
+      
+      this.rotNum = this.rotNum % 4; //resets counter to 0 when it reaches 4
     }
   }
   class Projectile{
-    constructor(x,y,height,width,velocity,dir,player,active=false){
-        this.x = x-(width/2)+(player.width/2);
-        this.y = y;
+    constructor(height,width,velocity,dir,player,active=false){
+        this.x = (player.x+(player.xunits/4))-(canvas.width/200); //offset .5% of canvas width to keep point at the center of the cell
+        this.y = (player.y-(player.yunits*2));
         this.width = width;
         this.height = height;
         this.velocity = velocity;
@@ -160,19 +280,28 @@ window.addEventListener('load', function () {
         this.dir = dir;
         this.player = player;
         this.active = active;
+        this.timer = 0;
+
+        console.log("player y: "+player.y);
+        console.log("yunits: "+player.yunits);
+        console.log("this.y: "+this.y);
       }
 
     render(){    
       //render projectile object
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = this.timer % 3 == 0?"#ff00ff":"#000000";
       this.active = true;
 
       //draw projectile according to player orientation
       if(this.dir=="up"||this.dir=="down"){
         ctx.fillRect(this.x, this.y, this.width, this.height);   
+        
       } else {
         ctx.fillRect(this.x+0, this.y+(this.player.height*0.4), this.height*2, this.width*0.5);  
       }
+      
+      this.timer++;
+      
     }
 
     clear(){
@@ -248,7 +377,7 @@ window.addEventListener('load', function () {
   grid.render();
 
   //render player at origin
-  const player = new Player(grid,'up');
+  const player = new Player(1,1,grid,'right');
   player.render();
 
   //listen for button press and start action
@@ -273,7 +402,7 @@ window.addEventListener('load', function () {
     if(code==='KeyF'){
 
       if(!player.firedProj){
-        let projectile = new Projectile(player.x,player.y,10,3,4,player.dir,player);
+        let projectile = new Projectile(10,3,3,player.dir,player);
       projectile.render();
         pew.currentTime = 0;
         pew.play();
@@ -306,7 +435,6 @@ window.addEventListener('load', function () {
               requestAnimationFrame(animateExplosion);
             } else {
               ctx.clearRect(0, 0, canvas.width, canvas.height);
-              console.log('end of explosion animation');
 
               player.render();
               grid.render();
@@ -325,31 +453,19 @@ window.addEventListener('load', function () {
     }
   });
   
-//   window.addEventListener("click",(e)=>{
-//     // test.render();
-//     let test = new Explosion(canvas.width/2,canvas.height/2, boom, true);
-//   function animateExplosion(){
+  window.addEventListener("click",()=>{
+    console.log(`cordinate middle x:${canvas.width/20} y:${canvas.height/20}`);
+    console.log(`player x:${player.x} y:${player.y}`);
+
+    ctx.beginPath();
+    ctx.moveTo(player.x,0);
+    ctx.lineTo(player.x, canvas.height);
     
-//       if(test.active){
-//         ctx.clearRect(0, 0, canvas.width, canvas.height); 
-//         console.log('2. update timer and frame ~');
-//         test.update();
-//         console.log('3. Render Image');
-//         test.render();
-//         player.render();
-//         grid.render();
-//         requestAnimationFrame(animateExplosion);
-//       } else {
-//         ctx.clearRect(0, 0, canvas.width, canvas.height);
-//         console.log('end of explosion animation');
+    ctx.moveTo(0,player.y);
+    ctx.lineTo(canvas.width, player.y);
 
-//         player.render();
-//         grid.render();
-//       }
-//     }
-//     console.log('1. start explosion animation');
-//     animateExplosion();
-//   });
-
+    ctx.stroke();
+  });
+  
 });
 
