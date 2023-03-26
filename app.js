@@ -19,7 +19,8 @@ window.addEventListener('load', function () {
   //load canvas
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext('2d');
-  let canvasPosition = canvas.getBoundingClientRect();
+  
+  const posTable = [1,3,5,7,9,11,13,15,17,19]
   
   //set origin to lower left corner
   ctx.translate(0, canvas.height);
@@ -36,7 +37,7 @@ window.addEventListener('load', function () {
   pew.volume = 0.4;
   bang.volume = 1;
   
-  //load Images
+  //load Images and element values
   const boom = document.getElementById("boom");
   const idleUp = document.getElementById("idleUp");  
   const idleRight = document.getElementById("idleRight");
@@ -65,7 +66,6 @@ window.addEventListener('load', function () {
       }
 
       ctx.closePath();
-      //draw lines
       ctx.stroke();
     }  
   }
@@ -222,31 +222,31 @@ window.addEventListener('load', function () {
       this.grid.render();
     }
 
-    move(dir){    
+    move(){    
       this.clear();
 
-      if(dir==='down'){      
+      if(this.dir==='down'){      
         //move up if y value will be above 0
         if(this.y-(canvas.height/10)<0){
           alert('cant move further down');
         } else {
           this.y -= canvas.height/10;
         }
-      } else if (dir==='up'){
+      } else if (this.dir==='up'){
         //move down if y value will be less than view height
         if(this.y+(canvas.height/10)>canvas.height){
           alert('cant move further up');
         } else {
           this.y += canvas.height/10;        
         }
-      } else if (dir==='left'){
+      } else if (this.dir==='left'){
         //move left if x value will be above 0
         if(this.x-(canvas.width/10)<0){
           alert('cant move further left');
         } else {
           this.x -= canvas.width/10;       
         }      
-      } else if (dir==='right'){
+      } else if (this.dir==='right'){
         //move down if x value will be less than view width
         if(this.x+(canvas.width/10)>canvas.width){
           alert('cant move further right');
@@ -255,18 +255,30 @@ window.addEventListener('load', function () {
         }    
       }
 
-      this.dir = dir;        
       this.render();
     }    
     
     rotation(direction){
-      if('left'){
+      if(direction=='right'){
         this.rotNum ++;
       } else {
         this.rotNum --;
       }
       
       this.rotNum = this.rotNum % 4; //resets counter to 0 when it reaches 4
+
+      if(this.rotNum==0){
+        this.dir = 'up';
+      } else if(this.rotNum==1||this.rotNum==-3){
+        this.dir = 'right';
+      } else if(this.rotNum==3||this.rotNum==-1){
+        this.dir = 'left';
+      } else {
+        this.dir = 'down';
+      }
+
+      this.clear();
+      this.render();
     }
   }
   class Projectile{
@@ -377,26 +389,34 @@ window.addEventListener('load', function () {
   grid.render();
 
   //render player at origin
-  const player = new Player(1,1,grid,'right');
+  let xp = 1;
+  let yp = 1;
+  const player = new Player(posTable[xp-1],posTable[yp-1],grid,'up');
   player.render();
 
   //listen for button press and start action
   window.addEventListener("keydown",({code})=>{
 
     if(code==='KeyD'||code==='ArrowRight'){
-      player.move('right');
+      player.rotation('right');
+      console.log(player.rotNum);      
+      console.log(player.dir);
     }
 
     if(code==='KeyA'||code==='ArrowLeft'){
-      player.move('left');
+      player.rotation('left');
+      console.log(player.rotNum);      
+      console.log(player.dir);
     }
 
     if(code==='KeyW'||code==='ArrowUp'){
-      player.move('up');
+      player.move();
+      console.log(player.rotNum);      
+      console.log(player.dir);
     }
 
     if(code==='KeyS'||code==='ArrowDown'){
-      player.move('down');
+      console.log(code);
     }
 
     if(code==='KeyF'){
